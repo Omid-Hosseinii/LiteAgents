@@ -5,6 +5,9 @@ from analyzer import analyze_employee, calculate_risk_score, get_risk_level
 from models import EmployeeRiskAnalysis, AgentResult, AIAnalysis
 from prompts import build_employee_analysis_prompt
 from llm import generate_response
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 DB_CONFIG = {
@@ -33,30 +36,23 @@ def analyze(employee_id_):
 
     llm_response = generate_response(prompt)
 
-    print("\n========== LLM RESPONSE ==========")
-    print(llm_response)
-    print("==================================\n")
+    logger.info(f"llm response has been generated for employee {employee_id_}")
 
     try:
         ai_data = json.loads(llm_response)
     except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid JSON from LLM for {employee_id_}")
-        print(f"JSON error: {e}")
+        logger.error(f"ERROR: Invalid JSON from LLM for {employee_id_}")
+        logger.error(f"JSON error: {e}")
         return None
 
     try:
         ai_analysis = AIAnalysis(**ai_data)
     except Exception as e:
-        print(f"ERROR: Invalid AI analysis for {employee_id_}")
-        print(f"Validation error: {e}")
+        logger.error(f"ERROR: Invalid AI for {employee_id_}")
+        logger.error(f"Validation error: {e}")
         return None
 
-    return AgentResult(
-        analysis=analysis,
-        ai_analysis=ai_analysis,
-    )
-
-
+    return AgentResult(analysis=analysis, ai_analysis=ai_analysis, )
 
 
 def get_employee_ids():
@@ -117,28 +113,3 @@ def save_analysis(res):
 
     finally:
         connection.close()
-
-
-if __name__ == "__main__":
-    employee_ids = get_employee_ids()
-
-    print(f"Found {len(employee_ids)} employees")
-    print("=" * 60)
-
-    for employee_id in employee_ids:
-        print(f"Analyzing {employee_id}...")
-
-        result = analyze(employee_id)
-
-        if result is not None:
-            save_analysis(result)
-
-            print(
-                f"{employee_id}: "
-                f"{result.analysis.risk_level} "
-                f"({result.analysis.risk_score})"
-            )
-        else:
-            print(f"{employee_id}: FAILED")
-
-        print("-" * 60)

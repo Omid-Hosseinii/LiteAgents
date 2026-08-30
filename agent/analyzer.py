@@ -74,25 +74,16 @@ def analyze_employee(employee_id):
     actual_hours = sum(row[6] for row in rows)
     email_count = sum(row[7] for row in rows)
 
-    completion_rate = (
-        completed_tasks / total_tasks
-        if total_tasks > 0
-        else 0
-    )
+    completion_rate = (completed_tasks / total_tasks
+                       if total_tasks > 0 else 0)
 
     # Trend data
     overdue_trend = [row[4] for row in rows]
     actual_hours_trend = [float(row[6]) for row in rows]
 
-    overdue_increasing = (
-        len(overdue_trend) >= 2
-        and overdue_trend[-1] > overdue_trend[0]
-    )
+    overdue_increasing = (len(overdue_trend) >= 2 and overdue_trend[-1] > overdue_trend[0])
 
-    actual_hours_increasing = (
-        len(actual_hours_trend) >= 2
-        and actual_hours_trend[-1] > actual_hours_trend[0]
-    )
+    actual_hours_increasing = (len(actual_hours_trend) >= 2 and actual_hours_trend[-1] > actual_hours_trend[0])
 
     return {
         "employee_id": employee_id,
@@ -133,30 +124,4 @@ def get_risk_level(risk_score):
         return "MEDIUM"
     else:
         return "LOW"
-
-
-if __name__ == "__main__":
-
-    employee_ids = get_all_employee_ids()
-
-    print(f"Found {len(employee_ids)} employees")
-    print("=" * 60)
-
-    for employee_id in employee_ids:
-
-        result = analyze_employee(employee_id)
-
-        if result is None:
-            continue
-
-        risk_score = calculate_risk_score(result)
-        risk_level = get_risk_level(risk_score)
-
-        result["risk_score"] = risk_score
-        result["risk_level"] = risk_level
-
-        analysis = EmployeeRiskAnalysis(**result)
-
-        print(analysis)
-        print("-" * 60)
 
