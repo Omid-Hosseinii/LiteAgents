@@ -1,3 +1,4 @@
+
 import psycopg2
 
 from models import EmployeeRiskAnalysis
@@ -36,6 +37,25 @@ def get_employee_timeseries(employee_id):
             )
 
             return cursor.fetchall()
+
+    finally:
+        connection.close()
+
+
+def get_all_employee_ids():
+    connection = psycopg2.connect(**DB_CONFIG)
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT DISTINCT employee_id
+                FROM employee_timeseries
+                ORDER BY employee_id;
+                """
+            )
+
+            return [row[0] for row in cursor.fetchall()]
 
     finally:
         connection.close()
@@ -90,6 +110,7 @@ def analyze_employee(employee_id):
         },
     }
 
+
 def calculate_risk_score(analysis):
     score = 0
 
@@ -104,6 +125,7 @@ def calculate_risk_score(analysis):
 
     return min(score, 100)
 
+
 def get_risk_level(risk_score):
     if risk_score >= 70:
         return "HIGH"
@@ -114,14 +136,27 @@ def get_risk_level(risk_score):
 
 
 if __name__ == "__main__":
-    result = analyze_employee("E001")
 
-    risk_score = calculate_risk_score(result)
-    risk_level = get_risk_level(risk_score)
+    employee_ids = get_all_employee_ids()
 
-    result["risk_score"] = risk_score
-    result["risk_level"] = risk_level
+    print(f"Found {len(employee_ids)} employees")
+    print("=" * 60)
 
-    analysis = EmployeeRiskAnalysis(**result)
+    for employee_id in employee_ids:
 
-    print(analysis)
+        result = analyze_employee(employee_id)
+
+        if result is None:
+            continue
+
+        risk_score = calculate_risk_score(result)
+        risk_level = get_risk_level(risk_score)
+
+        result["risk_score"] = risk_score
+        result["risk_level"] = risk_level
+
+        analysis = EmployeeRiskAnalysis(**result)
+
+        print(analysis)
+        print("-" * 60)
+

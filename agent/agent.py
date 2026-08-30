@@ -12,7 +12,7 @@ DB_CONFIG = {
     "port": 5432,
     "database": "postgres",
     "user": "ai_user",
-    "password": "ai_password",}
+    "password": "ai_password", }
 
 
 def analyze(employee_id_):
@@ -33,11 +33,30 @@ def analyze(employee_id_):
 
     llm_response = generate_response(prompt)
 
-    ai_data = json.loads(llm_response)
+    print("\n========== LLM RESPONSE ==========")
+    print(llm_response)
+    print("==================================\n")
 
-    ai_analysis = AIAnalysis(**ai_data)
+    try:
+        ai_data = json.loads(llm_response)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid JSON from LLM for {employee_id_}")
+        print(f"JSON error: {e}")
+        return None
 
-    return AgentResult(analysis=analysis, ai_analysis=ai_analysis, )
+    try:
+        ai_analysis = AIAnalysis(**ai_data)
+    except Exception as e:
+        print(f"ERROR: Invalid AI analysis for {employee_id_}")
+        print(f"Validation error: {e}")
+        return None
+
+    return AgentResult(
+        analysis=analysis,
+        ai_analysis=ai_analysis,
+    )
+
+
 
 
 def get_employee_ids():
@@ -103,6 +122,9 @@ def save_analysis(res):
 if __name__ == "__main__":
     employee_ids = get_employee_ids()
 
+    print(f"Found {len(employee_ids)} employees")
+    print("=" * 60)
+
     for employee_id in employee_ids:
         print(f"Analyzing {employee_id}...")
 
@@ -111,6 +133,12 @@ if __name__ == "__main__":
         if result is not None:
             save_analysis(result)
 
-            print(f"{employee_id}: " 
-                  f"{result.analysis.risk_level} "
-                  f"({result.analysis.risk_score})")
+            print(
+                f"{employee_id}: "
+                f"{result.analysis.risk_level} "
+                f"({result.analysis.risk_score})"
+            )
+        else:
+            print(f"{employee_id}: FAILED")
+
+        print("-" * 60)

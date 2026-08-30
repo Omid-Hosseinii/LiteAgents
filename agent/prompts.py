@@ -1,46 +1,70 @@
 def build_employee_analysis_prompt(analysis):
     return f"""
-You are an employee activity risk analysis assistant.
+شما یک دستیار تحلیل وضعیت کاری کارکنان هستید.
 
-Analyze the following employee activity data.
+اطلاعات واقعی کارمند زیر را تحلیل کنید:
 
 Employee ID: {analysis.employee_id}
 
-Total tasks: {analysis.total_tasks}
-Completed tasks: {analysis.completed_tasks}
-Overdue tasks: {analysis.overdue_tasks}
+تعداد دوره‌های ثبت‌شده: {analysis.periods}
+تعداد کل وظایف: {analysis.total_tasks}
+تعداد وظایف تکمیل‌شده: {analysis.completed_tasks}
+تعداد وظایف عقب‌افتاده: {analysis.overdue_tasks}
+ساعات تخمینی کار: {analysis.estimated_hours}
+ساعات واقعی کار: {analysis.actual_hours}
+تعداد ایمیل‌ها: {analysis.email_count}
+نرخ تکمیل وظایف: {analysis.completion_rate}
+آیا تعداد وظایف عقب‌افتاده در حال افزایش است؟ {analysis.trends.overdue_increasing}
+آیا ساعات واقعی کار در حال افزایش است؟ {analysis.trends.actual_hours_increasing}
+امتیاز ریسک: {analysis.risk_score}
+سطح ریسک: {analysis.risk_level}
 
-Estimated hours: {analysis.estimated_hours}
-Actual hours: {analysis.actual_hours}
+وظیفه شما:
 
-Email count: {analysis.email_count}
-Completion rate: {analysis.completion_rate:.2f}
+1. در بخش explanation، در 2 تا 3 جمله کوتاه توضیح دهید چرا این کارمند این سطح ریسک را دارد.
+2. در بخش warning_signs، مهم‌ترین نشانه‌های قابل مشاهده در داده‌ها را به صورت لیست بنویسید.
+3. در بخش recommendations، 2 تا 3 پیشنهاد عملی و مشخص برای مدیر ارائه دهید.
 
-Overdue tasks increasing: {analysis.trends.overdue_increasing}
-Actual hours increasing: {analysis.trends.actual_hours_increasing}
+قوانین تحلیل:
 
-Risk score: {analysis.risk_score}
-Risk level: {analysis.risk_level}
+- فقط از اطلاعات ارائه‌شده استفاده کنید.
+- هیچ بیماری، فرسودگی شغلی، مشکل روحی، مشکل شخصی یا علت دیگری را که در داده‌ها وجود ندارد فرض نکنید.
+- اگر مقدار یک شاخص صفر است، آن را به عنوان مشکل گزارش نکنید.
+- تفاوت ساعات واقعی و تخمینی را فقط بر اساس مقادیر داده‌شده بیان کنید.
+- نرخ تکمیل را درست تفسیر کنید.
+- اگر overdue_increasing برابر True است، افزایش وظایف عقب‌افتاده را به عنوان یک نشانه هشدار ذکر کنید.
+- اگر overdue_increasing برابر False است، ادعا نکنید که وظایف عقب‌افتاده در حال افزایش هستند.
+- اگر actual_hours_increasing برابر True است، افزایش ساعات واقعی را ذکر کنید.
+- اگر actual_hours_increasing برابر False است، ادعا نکنید که ساعات واقعی در حال افزایش هستند.
+- توصیه‌ها باید عملی، کوتاه و مناسب مدیر باشند.
+- از عبارت‌های کلی و نامفهوم استفاده نکنید.
+- متن فارسی باید طبیعی، رسمی و قابل فهم باشد.
+- از کلمات انگلیسی غیرضروری در متن فارسی استفاده نکنید.
+- از ساختن عدد یا اطلاعات جدید خودداری کنید.
 
-Return ONLY valid JSON.
-Do not use markdown.
-Do not add explanations outside JSON.
+فرمت خروجی:
 
-Use exactly this structure:
+فقط یک JSON معتبر برگردان.
+
+هیچ توضیحی قبل یا بعد از JSON ننویس.
+از Markdown استفاده نکن.
+از ``` استفاده نکن.
+
+ساختار JSON باید دقیقاً این باشد:
 
 {{
-    "explanation": "Short explanation of why the employee has this risk level.",
-    "warning_signs": [
-        "Warning sign 1",
-        "Warning sign 2",
-        "Warning sign 3"
-    ],
-    "recommendations": [
-        "Recommendation 1",
-        "Recommendation 2",
-        "Recommendation 3"
-    ]
+  "explanation": "توضیح فارسی کوتاه و حرفه‌ای درباره سطح ریسک",
+  "warning_signs": [
+    "نشانه هشدار اول",
+    "نشانه هشدار دوم"
+  ],
+  "recommendations": [
+    "پیشنهاد عملی اول برای مدیر",
+    "پیشنهاد عملی دوم برای مدیر"
+  ]
 }}
 
-Base your answer only on the provided data.
+تمام کلیدهای JSON باید انگلیسی باشند.
+تمام متن‌های داخل JSON باید فارسی باشند.
 """
+

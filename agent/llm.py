@@ -2,7 +2,7 @@ import requests
 
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "qwen3:1.7b"
+MODEL = "qwen3:8b"
 
 
 def generate_response(prompt):
@@ -15,7 +15,7 @@ def generate_response(prompt):
             "think": False,
             "format": "json",
         },
-        timeout=120,
+        timeout=1000,
     )
 
     response.raise_for_status()
