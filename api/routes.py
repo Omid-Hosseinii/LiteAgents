@@ -9,6 +9,7 @@ from fastapi import BackgroundTasks
 from agent.pipeline import execute_pipeline
 import threading
 import time
+from utils.n8n import trigger_workflow
 
 
 
@@ -182,10 +183,23 @@ def start_analysis():
         "status": "started",
     }
 
+@router.post("/workflow/run")
+async def run_workflow():
+
+    result = trigger_workflow()
+
+    return {
+        "status": "started",
+        "message": "Workflow با موفقیت اجرا شد.",
+        "n8n": result,
+    }
+
 
 @router.get("/analysis/status")
 def get_analysis_status():
 
     return analysis_status
+
+
 
 

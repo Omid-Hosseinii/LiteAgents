@@ -1,55 +1,77 @@
 
+/* ============================================================
+   Global
+   ============================================================ */
+
 body {
-    font-family: Tahoma, Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #f5f7fa;
 }
 
 
-.navbar {
-    margin-bottom: 20px;
+/* ============================================================
+   Dashboard Header
+   ============================================================ */
+
+.dashboard-header h1 {
+    font-size: 2rem;
 }
 
 
-.card {
+/* ============================================================
+   General Cards
+   ============================================================ */
+
+.dashboard-card,
+.summary-card {
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
 }
 
 
-.card-title {
-    font-weight: 700;
-}
+/* ============================================================
+   Summary Cards
+   ============================================================ */
 
-
-button {
-    min-width: 140px;
-}
-
-
-body {
-    background-color: #f8f9fa;
-}
-
-
-.employee-card {
+.summary-card {
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
 }
 
 
-.employee-card:hover {
+.summary-card:hover {
     transform: translateY(-3px);
 }
 
 
-.employee-card ul {
-    padding-right: 1.2rem;
+.summary-label {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
 }
 
 
-.employee-card li {
-    margin-bottom: 0.5rem;
+.summary-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+.summary-description {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+
+/* ============================================================
+   Analysis
+   ============================================================ */
+
+.analysis-progress {
+    height: 22px;
+    border-radius: 10px;
 }
 
 
@@ -58,7 +80,188 @@ body {
 }
 
 
-.card {
+.analysis-info-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px;
+}
+
+
+.analysis-timer {
+    padding: 12px;
+}
+
+
+/* ============================================================
+   Employee Cards
+   ============================================================ */
+
+.employee-card {
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.employee-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+
+.employee-card .employee-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.employee-id {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+
+.employee-risk-score {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+
+.employee-section-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+
+.employee-card ul {
+    padding-right: 1.2rem;
+    margin-bottom: 0;
+}
+
+
+.employee-card li {
+    margin-bottom: 6px;
+}
+
+
+/* ============================================================
+   Risk Badges
+   ============================================================ */
+
+.risk-high {
+    background-color: #dc3545;
+    color: white;
+}
+
+
+.risk-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+
+.risk-low {
+    background-color: #198754;
+    color: white;
+}
+
+
+/* ============================================================
+   Forms
+   ============================================================ */
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: none;
+}
+
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    .dashboard-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .summary-value {
+        font-size: 1.8rem;
+    }
+
+}
+
+
+/* ============================================================
+   Employee Details Modal
+   ============================================================ */
+
+.employee-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background-color: #f8f9fa;
+
+    border-radius: 12px;
+
+    padding: 18px;
+}
+
+
+.modal-risk-box {
+    background-color: #f8f9fa;
+
+    border-radius: 12px;
+
+    padding: 20px;
+}
+
+
+.modal-risk-score {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+
+.employee-modal-section {
+    margin-bottom: 24px;
+}
+
+
+.employee-modal-section h6 {
+    margin-bottom: 10px;
+}
+
+
+.employee-modal-section ul {
+    padding-right: 1.2rem;
+
+    margin-bottom: 0;
+}
+
+
+.employee-modal-section li {
+    margin-bottom: 8px;
+}
+
+
+.modal-content {
     border: none;
+
+    border-radius: 14px;
 }
 

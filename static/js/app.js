@@ -79,6 +79,7 @@ async function loadEmployees() {
 // Render Employees
 // ============================================================
 
+
 function renderEmployees(list) {
 
     const container =
@@ -110,6 +111,10 @@ function renderEmployees(list) {
             "d-none"
         );
 
+        updateSummary(
+            employees
+        );
+
         return;
     }
 
@@ -128,12 +133,78 @@ function renderEmployees(list) {
                 );
         }
     );
+
+
+    updateSummary(
+        employees
+    );
 }
+
+function updateSummary(list) {
+
+    const total =
+        list.length;
+
+
+    const high =
+        list.filter(
+            employee =>
+                employee.risk_level === "HIGH"
+        ).length;
+
+
+    const medium =
+        list.filter(
+            employee =>
+                employee.risk_level === "MEDIUM"
+        ).length;
+
+
+    const low =
+        list.filter(
+            employee =>
+                employee.risk_level === "LOW"
+        ).length;
+
+
+    document
+        .getElementById(
+            "total-employees"
+        )
+        .textContent =
+        total;
+
+
+    document
+        .getElementById(
+            "high-risk-employees"
+        )
+        .textContent =
+        high;
+
+
+    document
+        .getElementById(
+            "medium-risk-employees"
+        )
+        .textContent =
+        medium;
+
+
+    document
+        .getElementById(
+            "low-risk-employees"
+        )
+        .textContent =
+        low;
+}
+
 
 
 // ============================================================
 // Employee Card
 // ============================================================
+
 
 function createEmployeeCard(employee) {
 
@@ -148,59 +219,17 @@ function createEmployeeCard(employee) {
         );
 
 
-    const warningSigns =
-        Array.isArray(
-            employee.warning_signs
-        )
-            ? employee.warning_signs
-            : [];
-
-
-    const recommendations =
-        Array.isArray(
-            employee.recommendations
-        )
-            ? employee.recommendations
-            : [];
-
-
-    const warningsHTML =
-        warningSigns.length > 0
-
-            ? warningSigns
-                .map(
-                    item =>
-                        `<li>${escapeHtml(item)}</li>`
-                )
-                .join("")
-
-            : "<li>موردی ثبت نشده است</li>";
-
-
-    const recommendationsHTML =
-        recommendations.length > 0
-
-            ? recommendations
-                .map(
-                    item =>
-                        `<li>${escapeHtml(item)}</li>`
-                )
-                .join("")
-
-            : "<li>موردی ثبت نشده است</li>";
-
-
     return `
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-md-6 col-xl-4">
 
-            <div class="card employee-card h-100 shadow-sm">
+            <div class="card employee-card h-100">
 
                 <div class="card-body p-4">
 
 
                     <!-- Header -->
 
-                    <div class="d-flex justify-content-between align-items-start">
+                    <div class="employee-header mb-3">
 
                         <div>
 
@@ -208,17 +237,17 @@ function createEmployeeCard(employee) {
                                 کارمند
                             </div>
 
-                            <h4 class="fw-bold mb-0">
+                            <div class="employee-id">
                                 ${escapeHtml(
                                     employee.employee_id
                                 )}
-                            </h4>
+                            </div>
 
                         </div>
 
 
                         <span
-                            class="badge ${riskClass} fs-6 px-3 py-2"
+                            class="badge ${riskClass} px-3 py-2"
                         >
                             ${riskText}
                         </span>
@@ -229,45 +258,28 @@ function createEmployeeCard(employee) {
                     <hr>
 
 
-                    <!-- Risk -->
+                    <!-- Risk Score -->
 
-                    <div class="row text-center mb-4">
+                    <div class="text-center my-4">
 
-                        <div class="col-6">
-
-                            <div class="text-muted small">
-                                امتیاز ریسک
-                            </div>
-
-                            <div class="fs-2 fw-bold">
-                                ${employee.risk_score}
-                            </div>
-
+                        <div class="text-muted small">
+                            امتیاز ریسک
                         </div>
 
-
-                        <div class="col-6">
-
-                            <div class="text-muted small">
-                                وضعیت
-                            </div>
-
-                            <div class="fs-5 fw-bold mt-2">
-                                ${riskText}
-                            </div>
-
+                        <div class="employee-risk-score">
+                            ${employee.risk_score}
                         </div>
 
                     </div>
 
 
-                    <!-- Explanation -->
+                    <!-- Explanation Preview -->
 
                     <div class="mb-4">
 
-                        <h6 class="fw-bold">
-                            توضیحات تحلیل
-                        </h6>
+                        <div class="employee-section-title">
+                            خلاصه تحلیل
+                        </div>
 
                         <p class="text-muted mb-0">
                             ${escapeHtml(
@@ -278,34 +290,15 @@ function createEmployeeCard(employee) {
                     </div>
 
 
-                    <!-- Warning Signs -->
+                    <!-- Details Button -->
 
-                    <div class="mb-4">
-
-                        <h6 class="fw-bold">
-                            نشانه‌های هشدار
-                        </h6>
-
-                        <ul class="mb-0">
-                            ${warningsHTML}
-                        </ul>
-
-                    </div>
-
-
-                    <!-- Recommendations -->
-
-                    <div>
-
-                        <h6 class="fw-bold">
-                            پیشنهادهای مدیریتی
-                        </h6>
-
-                        <ul class="mb-0">
-                            ${recommendationsHTML}
-                        </ul>
-
-                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary w-100"
+                        onclick='showEmployeeDetails(${JSON.stringify(employee)})'
+                    >
+                        مشاهده جزئیات
+                    </button>
 
 
                 </div>
@@ -315,6 +308,159 @@ function createEmployeeCard(employee) {
         </div>
     `;
 }
+
+
+function showEmployeeDetails(employee) {
+
+    document
+        .getElementById(
+            "modal-employee-id"
+        )
+        .textContent =
+        employee.employee_id;
+
+
+    const riskLevel =
+        document.getElementById(
+            "modal-risk-level"
+        );
+
+
+    riskLevel.textContent =
+        translateRiskLevel(
+            employee.risk_level
+        );
+
+
+    riskLevel.className =
+        `badge fs-6 mt-1 ${
+            getRiskClass(
+                employee.risk_level
+            )
+        }`;
+
+
+    document
+        .getElementById(
+            "modal-risk-score"
+        )
+        .textContent =
+        employee.risk_score;
+
+
+    document
+        .getElementById(
+            "modal-explanation"
+        )
+        .textContent =
+        employee.explanation || "-";
+
+
+    const warningContainer =
+        document.getElementById(
+            "modal-warning-signs"
+        );
+
+
+    warningContainer.innerHTML = "";
+
+
+    const warnings =
+        Array.isArray(
+            employee.warning_signs
+        )
+            ? employee.warning_signs
+            : [];
+
+
+    if (warnings.length === 0) {
+
+        warningContainer.innerHTML =
+            "<li>موردی ثبت نشده است</li>";
+
+    } else {
+
+        warnings.forEach(
+            warning => {
+
+                const li =
+                    document.createElement(
+                        "li"
+                    );
+
+                li.textContent =
+                    warning;
+
+                warningContainer.appendChild(
+                    li
+                );
+            }
+        );
+    }
+
+
+    const recommendationsContainer =
+        document.getElementById(
+            "modal-recommendations"
+        );
+
+
+    recommendationsContainer.innerHTML =
+        "";
+
+
+    const recommendations =
+        Array.isArray(
+            employee.recommendations
+        )
+            ? employee.recommendations
+            : [];
+
+
+    if (
+        recommendations.length === 0
+    ) {
+
+        recommendationsContainer.innerHTML =
+            "<li>موردی ثبت نشده است</li>";
+
+    } else {
+
+        recommendations.forEach(
+            recommendation => {
+
+                const li =
+                    document.createElement(
+                        "li"
+                    );
+
+                li.textContent =
+                    recommendation;
+
+                recommendationsContainer.appendChild(
+                    li
+                );
+            }
+        );
+    }
+
+
+    const modalElement =
+        document.getElementById(
+            "employeeDetailsModal"
+        );
+
+
+    const modal =
+        bootstrap.Modal.getOrCreateInstance(
+            modalElement
+        );
+
+
+    modal.show();
+}
+
+
 
 
 // ============================================================
@@ -513,6 +659,94 @@ document
             }
         }
     );
+
+
+// ============================================================
+// Run Workflow
+// ============================================================
+
+document
+    .getElementById("run-workflow")
+    .addEventListener(
+        "click",
+        async function () {
+
+            const button = this;
+
+            button.disabled = true;
+
+            const originalText =
+                button.innerText;
+
+            button.innerText =
+                "در حال اجرا...";
+
+
+            setStatus(
+                "در حال اجرای Workflow..."
+            );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/workflow/run",
+                        {
+                            method: "POST"
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail
+                        ||
+                        "خطا در اجرای Workflow"
+                    );
+                }
+
+
+                setStatus(
+                    "Workflow با موفقیت اجرا شد."
+                );
+
+
+                // Refresh employee data
+                await loadEmployees();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Workflow error:",
+                    error
+                );
+
+
+                showError(
+                    "خطا در اجرای Workflow: "
+                    +
+                    error.message
+                );
+
+
+            } finally {
+
+                button.disabled = false;
+
+                button.innerText =
+                    originalText;
+            }
+        }
+    );
+
+
 
 
 // ============================================================
