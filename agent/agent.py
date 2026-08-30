@@ -1,11 +1,7 @@
 import json
 import psycopg2
 
-from analyzer import (
-    analyze_employee,
-    calculate_risk_score,
-    get_risk_level,
-)
+from analyzer import analyze_employee, calculate_risk_score, get_risk_level
 from models import EmployeeRiskAnalysis, AgentResult, AIAnalysis
 from prompts import build_employee_analysis_prompt
 from llm import generate_response
@@ -16,22 +12,22 @@ DB_CONFIG = {
     "port": 5432,
     "database": "postgres",
     "user": "ai_user",
-    "password": "ai_password",
-}
+    "password": "ai_password",}
 
-def analyze(employee_id):
-    result = analyze_employee(employee_id)
 
-    if result is None:
+def analyze(employee_id_):
+    res = analyze_employee(employee_id_)
+
+    if res is None:
         return None
 
-    risk_score = calculate_risk_score(result)
+    risk_score = calculate_risk_score(res)
     risk_level = get_risk_level(risk_score)
 
-    result["risk_score"] = risk_score
-    result["risk_level"] = risk_level
+    res["risk_score"] = risk_score
+    res["risk_level"] = risk_level
 
-    analysis = EmployeeRiskAnalysis(**result)
+    analysis = EmployeeRiskAnalysis(**res)
 
     prompt = build_employee_analysis_prompt(analysis)
 
@@ -41,10 +37,8 @@ def analyze(employee_id):
 
     ai_analysis = AIAnalysis(**ai_data)
 
-    return AgentResult(
-        analysis=analysis,
-        ai_analysis=ai_analysis,
-    )
+    return AgentResult(analysis=analysis, ai_analysis=ai_analysis, )
+
 
 def get_employee_ids():
     connection = psycopg2.connect(**DB_CONFIG)
@@ -64,7 +58,8 @@ def get_employee_ids():
     finally:
         connection.close()
 
-def save_analysis(result):
+
+def save_analysis(res):
     connection = psycopg2.connect(**DB_CONFIG)
 
     try:
@@ -90,12 +85,12 @@ def save_analysis(result):
                     created_at = CURRENT_TIMESTAMP;
                 """,
                 (
-                    result.analysis.employee_id,
-                    result.analysis.risk_score,
-                    result.analysis.risk_level,
-                    result.ai_analysis.explanation,
-                    json.dumps(result.ai_analysis.warning_signs),
-                    json.dumps(result.ai_analysis.recommendations),
+                    res.analysis.employee_id,
+                    res.analysis.risk_score,
+                    res.analysis.risk_level,
+                    res.ai_analysis.explanation,
+                    json.dumps(res.ai_analysis.warning_signs),
+                    json.dumps(res.ai_analysis.recommendations),
                 ),
             )
 
@@ -103,6 +98,7 @@ def save_analysis(result):
 
     finally:
         connection.close()
+
 
 if __name__ == "__main__":
     employee_ids = get_employee_ids()
@@ -115,8 +111,6 @@ if __name__ == "__main__":
         if result is not None:
             save_analysis(result)
 
-            print(
-                f"{employee_id}: "
-                f"{result.analysis.risk_level} "
-                f"({result.analysis.risk_score})"
-            )
+            print(f"{employee_id}: " 
+                  f"{result.analysis.risk_level} "
+                  f"({result.analysis.risk_score})")
