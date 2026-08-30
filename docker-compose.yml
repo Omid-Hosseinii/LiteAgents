@@ -23,7 +23,6 @@ services:
       - N8N_RESTRICT_FILE_ACCESS_TO=/files
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./mock-data:/files/mock-data
       - ./mock-data-persian:/files/mock-data-persian
 
   ollama:
