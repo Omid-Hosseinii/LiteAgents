@@ -1,19 +1,13 @@
-import psycopg
+
+from database.connection import SessionLocal
 
 
-DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "dbname": "postgres",
-    "user": "ai_user",
-    "password": "ai_password",
-}
+def get_db():
+    db = SessionLocal()
 
+    try:
+        yield db
 
-def get_connection():
-    return psycopg.connect(**DB_CONFIG)
+    finally:
+        db.close()
 
-
-if __name__ == "__main__":
-    with get_connection() as connection:
-        print("Database connection successful")

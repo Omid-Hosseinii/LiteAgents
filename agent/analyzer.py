@@ -1,64 +1,23 @@
 
-import psycopg2
-
-from models import EmployeeRiskAnalysis
-
-
-DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "database": "postgres",
-    "user": "ai_user",
-    "password": "ai_password",
-}
+from database.connection import SessionLocal
+from database.models import EmployeeTimeseries
 
 
 def get_employee_timeseries(employee_id):
-    connection = psycopg2.connect(**DB_CONFIG)
+    session = SessionLocal()
 
     try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT
-                    employee_id,
-                    date,
-                    total_tasks,
-                    completed_tasks,
-                    overdue_tasks,
-                    estimated_hours,
-                    actual_hours,
-                    email_count
-                FROM employee_timeseries
-                WHERE employee_id = %s
-                ORDER BY date;
-                """,
-                (employee_id,),
+        return (
+            session.query(EmployeeTimeseries)
+            .filter(
+                EmployeeTimeseries.employee_id == employee_id
             )
-
-            return cursor.fetchall()
+            .order_by(EmployeeTimeseries.date)
+            .all()
+        )
 
     finally:
-        connection.close()
-
-
-def get_all_employee_ids():
-    connection = psycopg2.connect(**DB_CONFIG)
-
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT DISTINCT employee_id
-                FROM employee_timeseries
-                ORDER BY employee_id;
-                """
-            )
-
-            return [row[0] for row in cursor.fetchall()]
-
-    finally:
-        connection.close()
+        session.close()
 
 
 def analyze_employee(employee_id):
@@ -67,23 +26,64 @@ def analyze_employee(employee_id):
     if not rows:
         return None
 
-    total_tasks = sum(row[2] for row in rows)
-    completed_tasks = sum(row[3] for row in rows)
-    overdue_tasks = sum(row[4] for row in rows)
-    estimated_hours = sum(row[5] for row in rows)
-    actual_hours = sum(row[6] for row in rows)
-    email_count = sum(row[7] for row in rows)
+    total_tasks = sum(
+        row.total_tasks
+        for row in rows
+    )
 
-    completion_rate = (completed_tasks / total_tasks
-                       if total_tasks > 0 else 0)
+    completed_tasks = sum(
+        row.completed_tasks
+        for row in rows
+    )
+
+    overdue_tasks = sum(
+        row.overdue_tasks
+        for row in rows
+    )
+
+    estimated_hours = sum(
+        row.estimated_hours
+        for row in rows
+    )
+
+    actual_hours = sum(
+        row.actual_hours
+        for row in rows
+    )
+
+    email_count = sum(
+        row.email_count
+        for row in rows
+    )
+
+    completion_rate = (
+        completed_tasks / total_tasks
+        if total_tasks > 0
+        else 0
+    )
 
     # Trend data
-    overdue_trend = [row[4] for row in rows]
-    actual_hours_trend = [float(row[6]) for row in rows]
 
-    overdue_increasing = (len(overdue_trend) >= 2 and overdue_trend[-1] > overdue_trend[0])
+    overdue_trend = [
+        row.overdue_tasks
+        for row in rows
+    ]
 
-    actual_hours_increasing = (len(actual_hours_trend) >= 2 and actual_hours_trend[-1] > actual_hours_trend[0])
+    actual_hours_trend = [
+        float(row.actual_hours)
+        for row in rows
+    ]
+
+    overdue_increasing = (
+        len(overdue_trend) >= 2
+        and overdue_trend[-1] > overdue_trend[0]
+    )
+
+    actual_hours_increasing = (
+        len(actual_hours_trend) >= 2
+        and actual_hours_trend[-1]
+        > actual_hours_trend[0]
+    )
 
     return {
         "employee_id": employee_id,
@@ -120,8 +120,10 @@ def calculate_risk_score(analysis):
 def get_risk_level(risk_score):
     if risk_score >= 70:
         return "HIGH"
+
     elif risk_score >= 40:
         return "MEDIUM"
+
     else:
         return "LOW"
 

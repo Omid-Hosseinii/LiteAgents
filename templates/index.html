@@ -1,0 +1,363 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+داشبورد سلامت کارکنان
+{% endblock %}
+
+
+{% block content %}
+
+<div class="mb-4">
+
+    <h1 class="fw-bold">
+        داشبورد سلامت کارکنان
+    </h1>
+
+    <p class="text-muted">
+        تحلیل وضعیت کاری کارکنان با استفاده از هوش مصنوعی
+    </p>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- Analysis Section -->
+<!-- ===================================================== -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div>
+
+                <h4 class="fw-bold mb-1">
+                    تحلیل کارکنان
+                </h4>
+
+                <p class="text-muted mb-0">
+                    اجرای Pipeline تحلیل و تولید گزارش هوشمند
+                </p>
+
+            </div>
+
+            <button
+                id="start-analysis"
+                class="btn btn-primary px-4"
+            >
+                شروع تحلیل
+            </button>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- Status -->
+
+        <div id="analysis-status">
+
+            <div class="text-muted">
+                آماده شروع تحلیل
+            </div>
+
+        </div>
+
+
+        <!-- Progress -->
+
+        <div
+            id="analysis-progress-container"
+            class="mt-4 d-none"
+        >
+
+            <div class="d-flex justify-content-between mb-2">
+
+                <span>
+                    پیشرفت تحلیل
+                </span>
+
+                <span id="progress-text">
+                    0 / 0
+                </span>
+
+            </div>
+
+
+            <div
+                class="progress"
+                role="progressbar"
+                style="height: 22px;"
+            >
+
+                <div
+                    id="analysis-progress"
+                    class="progress-bar"
+                    style="width: 0%"
+                >
+                    0%
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Current Employee -->
+
+        <div
+            id="current-employee"
+            class="row mt-4 d-none"
+        >
+
+            <div class="col-md-4">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        کارمند در حال تحلیل
+                    </small>
+
+                    <div
+                        id="employee-id"
+                        class="fs-4 fw-bold mt-1"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        سطح ریسک
+                    </small>
+
+                    <div
+                        id="risk-level"
+                        class="fs-4 fw-bold mt-1"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        امتیاز ریسک
+                    </small>
+
+                    <div
+                        id="risk-score"
+                        class="fs-4 fw-bold mt-1"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Timer -->
+
+        <div
+            id="analysis-timer"
+            class="text-center mt-4 d-none"
+        >
+
+            <small class="text-muted">
+                زمان اجرای تحلیل
+            </small>
+
+            <div
+                id="timer-value"
+                class="fs-3 fw-bold"
+            >
+                00:00
+            </div>
+
+        </div>
+
+
+        <!-- Finished -->
+
+        <div
+            id="analysis-complete"
+            class="alert alert-success mt-4 d-none"
+        >
+
+            <strong>
+                تحلیل با موفقیت انجام شد.
+            </strong>
+
+            <div class="mt-2">
+
+                زمان کل اجرا:
+                <strong id="total-time">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- Error -->
+
+        <div
+            id="analysis-error"
+            class="alert alert-danger mt-4 d-none"
+        >
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- Dashboard Section -->
+<!-- ===================================================== -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="mb-4">
+
+            <h4 class="fw-bold mb-1">
+                گزارش کارکنان
+            </h4>
+
+            <p class="text-muted mb-0">
+                نتایج آخرین تحلیل انجام‌شده
+            </p>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Filters -->
+        <!-- ================================================= -->
+
+        <div class="row g-3 mb-4">
+
+
+            <!-- Employee Search -->
+
+            <div class="col-md-6">
+
+                <label
+                    for="employee-search"
+                    class="form-label fw-bold"
+                >
+                    جستجوی کارمند
+                </label>
+
+                <input
+                    type="text"
+                    id="employee-search"
+                    class="form-control"
+                    placeholder="شناسه کارمند را وارد کنید؛ مثلاً E001"
+                >
+
+            </div>
+
+
+            <!-- Risk Filter -->
+
+            <div class="col-md-6">
+
+                <label
+                    for="risk-filter"
+                    class="form-label fw-bold"
+                >
+                    سطح ریسک
+                </label>
+
+                <select
+                    id="risk-filter"
+                    class="form-select"
+                >
+
+                    <option value="ALL">
+                        همه کارکنان
+                    </option>
+
+                    <option value="HIGH">
+                        ریسک بالا
+                    </option>
+
+                    <option value="MEDIUM">
+                        ریسک متوسط
+                    </option>
+
+                    <option value="LOW">
+                        ریسک پایین
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Result Count -->
+        <!-- ================================================= -->
+
+        <div
+            id="employee-result-count"
+            class="text-muted mb-3"
+        >
+            در حال دریافت اطلاعات...
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Employees -->
+        <!-- ================================================= -->
+
+        <div
+            id="employees-container"
+            class="row g-4"
+        >
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Empty Result -->
+        <!-- ================================================= -->
+
+        <div
+            id="employees-empty"
+            class="alert alert-secondary text-center d-none mt-3"
+        >
+            کارمندی با این مشخصات پیدا نشد.
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
