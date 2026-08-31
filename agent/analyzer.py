@@ -1,4 +1,3 @@
-
 from database.connection import SessionLocal
 from database.models import EmployeeTimeseries
 
@@ -105,17 +104,55 @@ def analyze_employee(employee_id):
 def calculate_risk_score(analysis):
     score = 0
 
-    if analysis["trends"]["overdue_increasing"]:
-        score += 40
+    # Overdue tasks
+    overdue_tasks = analysis["overdue_tasks"]
+    total_tasks = analysis["total_tasks"]
 
-    if analysis["completion_rate"] < 0.8:
+    if total_tasks > 0:
+        overdue_rate = overdue_tasks / total_tasks
+
+        if overdue_rate >= 0.75:
+            score += 50
+
+        elif overdue_rate >= 0.50:
+            score += 35
+
+        elif overdue_rate > 0:
+            score += 20
+
+    # Completion rate
+    completion_rate = analysis["completion_rate"]
+
+    if completion_rate < 0.50:
         score += 30
 
-    if analysis["actual_hours"] > analysis["estimated_hours"]:
+    elif completion_rate < 0.70:
         score += 20
 
-    return min(score, 100)
+    elif completion_rate < 0.85:
+        score += 10
 
+    # Actual vs estimated hours
+    estimated = analysis["estimated_hours"]
+    actual = analysis["actual_hours"]
+
+    if estimated > 0:
+        overtime_ratio = actual / estimated
+
+        if overtime_ratio >= 1.50:
+            score += 20
+
+        elif overtime_ratio >= 1.25:
+            score += 15
+
+        elif overtime_ratio > 1.10:
+            score += 10
+
+    # Increasing overdue trend
+    if analysis["trends"]["overdue_increasing"]:
+        score += 10
+
+    return min(score, 100)
 
 def get_risk_level(risk_score):
     if risk_score >= 70:

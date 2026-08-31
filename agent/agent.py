@@ -1,15 +1,9 @@
 import json
-from agent.analyzer import (
-    analyze_employee,
-    calculate_risk_score,
-    get_risk_level,
-)
 
-from agent.models import (
-    EmployeeRiskAnalysis,
-    AgentResult,
-    AIAnalysis,
-)
+from agent.analyzer import analyze_employee, calculate_risk_score, get_risk_level
+
+
+from agent.models import EmployeeRiskAnalysis, AgentResult, AIAnalysis
 
 from agent.prompts import build_employee_analysis_prompt
 from agent.llm import generate_response
@@ -41,10 +35,7 @@ def analyze(employee_id):
 
     ai_analysis = AIAnalysis(**ai_data)
 
-    return AgentResult(
-        analysis=analysis,
-        ai_analysis=ai_analysis,
-    )
+    return AgentResult(analysis=analysis, ai_analysis=ai_analysis, )
 
 
 def run_analysis_pipeline(employee_ids):
@@ -60,4 +51,3 @@ def run_analysis_pipeline(employee_ids):
 
         if result is not None:
             yield result
-
