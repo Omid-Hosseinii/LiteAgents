@@ -14,5 +14,3 @@ def trigger_workflow():
 
     return response.json()
 
-
-trigger_workflow()

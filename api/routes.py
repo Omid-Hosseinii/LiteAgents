@@ -5,69 +5,46 @@ from sqlalchemy.orm import Session
 from api.database import get_db
 from database.models import EmployeeRiskAnalysis
 
-from fastapi import BackgroundTasks
 from agent.pipeline import execute_pipeline
 import threading
 import time
-from utils.n8n import trigger_workflow
-
+from n8n.trigger import trigger_workflow
 
 
 router = APIRouter()
 
 
 @router.get("/employees")
-def get_employees(
-    db: Session = Depends(get_db),
-):
-    employees = (
-        db.query(EmployeeRiskAnalysis)
-        .order_by(EmployeeRiskAnalysis.employee_id)
-        .all()
-    )
+def get_employees(db: Session = Depends(get_db), ):
+    employees = (db.query(EmployeeRiskAnalysis)
+                 .order_by(EmployeeRiskAnalysis.employee_id).all())
 
-    return [
-        {
-            "employee_id": employee.employee_id,
+    return [{"employee_id": employee.employee_id,
+             "risk_score": employee.risk_score,
+             "risk_level": employee.risk_level,
+             "explanation": employee.explanation,
+             "warning_signs": employee.warning_signs,
+             "recommendations": employee.recommendations,
+             "created_at": employee.created_at, } for employee in employees]
+
+
+@router.get("/employees/{employee_id}")
+def get_employee(employee_id: str, db: Session = Depends(get_db), ):
+    employee = (db.query(EmployeeRiskAnalysis)
+                .filter(EmployeeRiskAnalysis.employee_id == employee_id)
+                .first())
+
+    if employee is None:
+        raise HTTPException(status_code=404,
+                            detail="Employee not found", )
+
+    return {"employee_id": employee.employee_id,
             "risk_score": employee.risk_score,
             "risk_level": employee.risk_level,
             "explanation": employee.explanation,
             "warning_signs": employee.warning_signs,
             "recommendations": employee.recommendations,
-            "created_at": employee.created_at,
-        }
-        for employee in employees
-    ]
-
-
-@router.get("/employees/{employee_id}")
-def get_employee(
-    employee_id: str,
-    db: Session = Depends(get_db),
-):
-    employee = (
-        db.query(EmployeeRiskAnalysis)
-        .filter(
-            EmployeeRiskAnalysis.employee_id == employee_id
-        )
-        .first()
-    )
-
-    if employee is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Employee not found",
-        )
-
-    return {
-        "employee_id": employee.employee_id,
-        "risk_score": employee.risk_score,
-        "risk_level": employee.risk_level,
-        "explanation": employee.explanation,
-        "warning_signs": employee.warning_signs,
-        "recommendations": employee.recommendations,
-        "created_at": employee.created_at,
-    }
+            "created_at": employee.created_at, }
 
 
 @router.get("/alerts")
