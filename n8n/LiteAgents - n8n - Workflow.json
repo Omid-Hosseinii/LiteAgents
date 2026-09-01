@@ -1,0 +1,311 @@
+{
+  "name": "LiteAgents - n8n - Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "fileSelector": "/files/mock-data-persian/outlook/emails.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -112
+      ],
+      "id": "77966e52-7c7b-4970-ad75-7397f1f1ca98",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        -112
+      ],
+      "id": "c092d725-1d0a-46e3-9a5a-a49e13995bd0",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const records = items[0].json.data;\n\nreturn records.map(record => ({\n  json: {\n    employee_id: record.employee_id,\n    timestamp: record.timestamp,\n    source: \"outlook\",\n    data: {\n      subject: record.subject,\n      body: record.body,\n      sender: record.sender,\n      receiver: record.receiver\n    }\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        -112
+      ],
+      "id": "f2ac9ae4-57bb-486f-863c-4c0a21469d53",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO employee_activity\n(employee_id, timestamp, source, data)\nVALUES\n(\n  '{{ $json.employee_id }}',\n  '{{ $json.timestamp }}',\n  '{{ $json.source }}',\n  '{{ JSON.stringify($json.data).replace(/'/g, \"''\") }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        896,
+        -112
+      ],
+      "id": "b0adad1c-f4e9-41f0-a538-50afeea0190e",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "53S1nBBZtA50fDhz",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/mock-data-persian/jira/tasks.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        208
+      ],
+      "id": "331dea92-1ffb-40cd-aa2e-4fdb38964ce5",
+      "name": "Read/Write Files from Disk1"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        208
+      ],
+      "id": "547f26eb-9d2b-4d76-b478-8c84613d7b67",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const records = items[0].json.data;\n\nreturn records.map(record => ({\n  json: {\n    employee_id: record.employee_id,\n    timestamp: record.created_at,\n    source: \"jira\",\n    data: {\n      task_id: record.task_id,\n      completed_at: record.completed_at,\n      estimated_hours: record.estimated_hours,\n      actual_hours: record.actual_hours,\n      status: record.status\n    }\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        208
+      ],
+      "id": "d61040f2-3350-49f4-befa-8861acc56f74",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO employee_activity\n(employee_id, timestamp, source, data)\nVALUES\n(\n  '{{ $json.employee_id }}',\n  '{{ $json.timestamp }}',\n  '{{ $json.source }}',\n  '{{ JSON.stringify($json.data).replace(/'/g, \"''\") }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        896,
+        208
+      ],
+      "id": "14beefb5-6570-439c-81dc-afa99adde9e0",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "53S1nBBZtA50fDhz",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO employee_timeseries (\n    employee_id,\n    date,\n    total_tasks,\n    completed_tasks,\n    overdue_tasks,\n    estimated_hours,\n    actual_hours,\n    email_count\n)\nSELECT\n    employee_id,\n    DATE(timestamp) AS date,\n\n    COUNT(*) FILTER (\n        WHERE source = 'jira'\n    ) AS total_tasks,\n\n    COUNT(*) FILTER (\n        WHERE source = 'jira'\n        AND data->>'status' = 'done'\n    ) AS completed_tasks,\n\n    COUNT(*) FILTER (\n        WHERE source = 'jira'\n        AND data->>'status' = 'overdue'\n    ) AS overdue_tasks,\n\n    COALESCE(SUM(\n        CASE\n            WHEN source = 'jira'\n            THEN (data->>'estimated_hours')::NUMERIC\n            ELSE 0\n        END\n    ), 0) AS estimated_hours,\n\n    COALESCE(SUM(\n        CASE\n            WHEN source = 'jira'\n            THEN COALESCE((data->>'actual_hours')::NUMERIC, 0)\n            ELSE 0\n        END\n    ), 0) AS actual_hours,\n\n    COUNT(*) FILTER (\n        WHERE source = 'outlook'\n    ) AS email_count\n\nFROM employee_activity\nGROUP BY employee_id, DATE(timestamp);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1264,
+        48
+      ],
+      "id": "1d80da60-4600-4ace-9b67-60b975f9271c",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "53S1nBBZtA50fDhz",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1104,
+        48
+      ],
+      "id": "9f83e7b6-f64f-4938-9825-67fc7e2f3314",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3c6dd504-7d0f-4ec1-8d51-3b421d21fc32",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "50df8cbd-87ed-4f24-8ba2-56c87c50b9dd",
+      "name": "Webhook",
+      "webhookId": "3c6dd504-7d0f-4ec1-8d51-3b421d21fc32"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4e1dc090-ed11-49d5-8cee-78d6dcfaebfb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21a0d14ea68c019bb4f1e83d48afadc5f9572f0125897815f3ecde44898dcc2e"
+  },
+  "nodeGroups": [],
+  "id": "0WVMPyZ6f3rgh0hC",
+  "tags": []
+}
